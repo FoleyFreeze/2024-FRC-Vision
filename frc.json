@@ -1,0 +1,18 @@
+{
+    "cameras": [
+        {
+            "fps": 60,
+            "height": 480,
+            "name": "rPi Camera 0",
+            "path": "/dev/video0",
+            "pixel format": "mjpeg",
+            "stream": {
+                "properties": []
+            },
+            "width": 640
+        }
+    ],
+    "ntmode": "client",
+    "switched cameras": [],
+    "team": 910
+}
