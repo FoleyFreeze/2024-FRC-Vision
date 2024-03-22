@@ -754,8 +754,10 @@ def main():
                         exp_time, "AnalogueGain": 1.0})
                     config_gen.set('GENERAL', 'Manual Exposure Time', str(exp_time))
 
-            tag_uptime_ntt.set(seconds)
-            note_uptime_ntt.set(seconds)
+            if vision_type == 'tag':
+                tag_uptime_ntt.set(seconds)
+            else:
+                note_uptime_ntt.set(seconds)
             time_check = True
 
             if vision_type == 'tag':
@@ -989,112 +991,98 @@ def main():
             
             notes = []
             note_contours = []
+           
+            max_contour = None
+            center_y_max = -24
+            area = 1
+
+            print(f'ctrs={len(orangeSorted)}')
             for y in orangeSorted:
 
                 area = cv2.contourArea(y)
 
+                #uncomment the following block to get raw data output for debugging and calibrating distance / angle
+                '''
                 r_x,r_y,r_w,r_h = cv2.boundingRect(y)
-
-                #ar = float(r_w)/r_h  at the far distance we are going for the aspect ratio is so small we won't get much change
-
                 center_x = r_x + int(round(r_w / 2)) + NOTE_X_OFFSET
                 center_y = r_y + int(round(r_h / 2)) + NOTE_Y_OFFSET
-                #distance = note_regress_distance(center_y) # get distance (inches) using y location
-                #px_per_deg = note_regress_px_per_deg(distance) # get pixel per degree
-                #angle = (1 / px_per_deg) * (center_x - w/2)
-                
-                #Extent is the ratio of contour area to bounding rectangle area.
                 extent = float(area) / (r_w * r_h)
+                print(f'ar={area:4.1f} ex={extent:1.2f} note_x={center_x} note_y={center_y}')
+                '''
 
-                if db_n == True:
-                    if note_record_data_ntt.get() == True:
-                        note_data = f'{len(orangeSorted)},{area:4.1f},{center_x},{center_y},{ar:2.1f},{extent:2.1f},{distance:3.1f},{angle:2.1f}'
-                        with open('note_data.txt', 'a') as f:
-                            f.write(note_data)
-                            f.write('\n')
-                        note_record_data_ntt.set(False)
-                    #if time_check == True and area > 222 and ar > 0.6 and ar < 2.3:
-                    
-                    if time_check == True and area > 4:
-                        #print(f'num={len(orangeSorted)} ar={area:4.1f} note_x={center_x} note_y={center_y} a_r={ar:2.1f} ex={extent:2.1f} d={distance:3.1f} {angle:2.1f} deg')
-                        print(f'ar={area:4.1f} ex={extent:1.2f} note_x={center_x} note_y={center_y} ppd={px_per_deg:1.1f} d={distance:3.1f} {angle:2.1f} deg')
-                        #if area > 4:
-                        #    print(f'num={len(orangeSorted)} ar={area:4.1f} note_x={center_x} note_y={center_y} ex={extent:2.1f}')
-                        #print(f'num={len(orangeSorted)} ar={area:4.1f} note_x={center_x} note_y={center_y} a_r={ar:2.1f} ex={extent:2.1f}')
-                    
-                #cv2.drawContours(img, y, -1, (0,255,0), 2)
+                if area > 25:
+                    r_x,r_y,r_w,r_h = cv2.boundingRect(y)
+                    center_y = r_y + int(round(r_h / 2)) + NOTE_Y_OFFSET
 
-                #(ar > 0.65 and ar < 4)                      and
-                if (area > 25 and area < 54000 ) and \
-                    (center_y > 17  and center_y < 240*2):
+                    if center_y > center_y_max:
+                        center_y_max = center_y
+                        max_contour = y     
+            
+            # at this point, max_contour points to closest shape by vertical y or None if the area of all were too small
+            # now need to determine if this shape is a note
+            if max_contour is not None:
 
-                        if (center_y > 240*2): # at really close, can't see the bottom, aspect ratio goes way up 
-                            extent_min = 0.25
+                area = cv2.contourArea(max_contour)
+
+                r_x,r_y,r_w,r_h = cv2.boundingRect(max_contour)
+                center_x = r_x + int(round(r_w / 2)) + NOTE_X_OFFSET
+                center_y = r_y + int(round(r_h / 2)) + NOTE_Y_OFFSET
+
+                if (center_y > 17  and center_y < 240*2):
+
+                    if (center_y > 240*2): # at really close, can't see the bottom, aspect ratio goes way up 
+                        extent_min = 0.25
+                    else:
+                        extent_min = 0.25
+
+                    #Extent is the ratio of contour area to bounding rectangle area.
+                    extent = float(area) / (r_w * r_h)
+
+                    #extent goes way down when we get real close
+                    if (extent > extent_min and extent < 1.0):
+
+                        if center_y >= 390: # don't see a full note this close, so y value for this distance is a bit off so force it to 0
+                            distance = 0
                         else:
-                            extent_min = 0.25
+                            distance = note_regress_distance(center_y) # get distance (inches) using y location
+                        px_per_deg = note_regress_px_per_deg(distance) # get pixel per degree
+                        angle = (1 / px_per_deg) * (center_x - w/2)
+                        if (distance >= 0 and distance < 360) and (angle >= -70 and angle < 70): # sanity check'''
+                    
+                            image_num += 1
+                            image_counter += 1
+                            image_time = time.perf_counter() - t1_time
+                            image_time_av_total += image_time
 
-                        #extent goes way down when we get real close
-                        if (extent > extent_min and extent < 1.0): 
-                
-                            # found a note
-                            notes.append((center_x,center_y))
-                            note_contours.append(y)
-                            
-                            if len(notes) > 0:
+                            if image_counter == FPS_NUM_SAMPLES:
+                                fps_av = 1/(image_time_av_total/image_counter)
+                                if fps_av < fps_av_min:
+                                    fps_av_min = fps_av
+                                if fps_av > fps_av_max:
+                                    fps_av_max = fps_av
+                                image_time_av_total = 0
+                                image_counter = 0
 
-                                closest_idx = -1
-                                x_diff_min = 999
-                                y_diff_min = 999
+                            pose_data = piece_pose_data_bytes(image_num, rio_time, image_time, 3, distance, angle)
+                            note_pose_data_bytes_ntt.set(pose_data)
+                            NetworkTableInstance.getDefault().flush()
 
-                                # find the note with smallest diff between: center x and center (320) and center y and max y (480)
-                                for note in range(len(notes)):
-
-                                    note_x = notes[note][0]
-                                    note_y = notes[note][1]
-                                    if abs(note_x - 320) < x_diff_min and abs(note_y - 480) < y_diff_min:
-                                        x_diff_min = abs(note_x - 320)
-                                        y_diff_min = abs(note_y - 480)
-                                        closest_idx = note
-                                        
-                                if closest_idx != -1:
-                                    if notes[closest_idx][1] >= 390: # don't see a full note this close, so y value for this distance is a bit off so force it to 0
-                                        distance = 0
-                                    else:
-                                        distance = note_regress_distance(notes[closest_idx][1]) # get distance (inches) using y location
-                                    px_per_deg = note_regress_px_per_deg(distance) # get pixel per degree
-                                    angle = (1 / px_per_deg) * (notes[closest_idx][0] - w/2)
-                                    if (distance >= 0 and distance < 360) and (angle >= -70 and angle < 70): # sanity check'''
-                                
-                                        image_num += 1
-                                        image_counter += 1
-                                        image_time = time.perf_counter() - t1_time
-                                        image_time_av_total += image_time
-
-                                        if image_counter == FPS_NUM_SAMPLES:
-                                            fps_av = 1/(image_time_av_total/image_counter)
-                                            if fps_av < fps_av_min:
-                                                fps_av_min = fps_av
-                                            if fps_av > fps_av_max:
-                                                fps_av_max = fps_av
-                                            image_time_av_total = 0
-                                            image_counter = 0
-
-                                        pose_data = piece_pose_data_bytes(image_num, rio_time, image_time, 3, distance, angle)
-                                        note_pose_data_bytes_ntt.set(pose_data)
-                                        NetworkTableInstance.getDefault().flush()
-
-                                        #print(f'ar={area:4.1f} ex={extent:1.2f} note_x={center_x} note_y={center_y} ppd={px_per_deg:1.1f} d={distance:3.1f} {angle:2.1f} deg')
-
-                                        if db_n == True:
-                                            txt = piece_pose_data_string(image_num, rio_time, image_time, distance, angle)
-                                            note_pose_data_string_header_ntt.set(txt)
-                                            note_distance_ntt.set(round(distance,2))
-                                            note_angle_ntt.set(round(angle,2))                            
-                                            cv2.circle(img, (notes[closest_idx][0], notes[closest_idx][1]), 4, (0,255,0), -1)
-                                            cv2.drawContours(img, [note_contours[closest_idx]], 0, (0,255,0), 1)
-                                            outputStreamNote.putFrame(img) # send to dashboard
-                                            outputMask.putFrame(img_mask) # send to dashboard
-                                            continue
+                            if db_n == True:
+                                txt = piece_pose_data_string(image_num, rio_time, image_time, distance, angle)
+                                note_pose_data_string_header_ntt.set(txt)
+                                note_distance_ntt.set(round(distance,2))
+                                note_angle_ntt.set(round(angle,2))                       
+                                cv2.circle(img, (center_x, center_y), 12, (200,0,0), -1)
+                                cv2.drawContours(img, [max_contour], 0, (200,0,0), 4)
+                                outputStreamNote.putFrame(img) # send to dashboard
+                                outputMask.putFrame(img_mask) # send to dashboard
+                                if note_record_data_ntt.get() == True:
+                                    note_data = f'{area:4.1f},{extent:2.1f},{center_x},{center_y},{distance:3.1f},{angle:2.1f}'
+                                    with open('note_data.txt', 'a') as f:
+                                        f.write(note_data)
+                                        f.write('\n')
+                                    note_record_data_ntt.set(False)
+                                continue
                     
             if db_n == True:
                 outputStreamNote.putFrame(img) # send to dashboard
@@ -1109,7 +1097,7 @@ def main():
                         note_max_v_ntt.get(), \
                         note_min_area_ntt.get())
                     savefile_ntt.set(False)
-
+                    
         else:
             continue
 
