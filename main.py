@@ -996,7 +996,6 @@ def main():
             center_y_max = -24
             area = 1
 
-            print(f'ctrs={len(orangeSorted)}')
             for y in orangeSorted:
 
                 area = cv2.contourArea(y)
