@@ -638,6 +638,11 @@ def main():
     #picam2_config['transform'] = libcamera.Transform(hflip=1, vflip=1)
     #picam2.configure(picam2_config)
     picam2.set_controls({"FrameRate": fps})
+    
+    # added @ Troy 3-23
+    picam2.set_controls({'Brightness': float(config_gen.get('GENERAL', 'Brightness'))})
+    picam2.set_controls({'Contrast': float(config_gen.get('GENERAL', 'Contrast'))})
+    # end added @ Troy 3-23
 
     # AeFlickerPeriod from https://datasheets.raspberrypi.com/camera/picamera2-manual.pdf
     # The period of the lighting cycle in microseconds. For example, for 50Hz mains
@@ -1001,7 +1006,7 @@ def main():
                 area = cv2.contourArea(y)
 
                 #uncomment the following block to get raw data output for debugging and calibrating distance / angle
-                '''
+                ''' 
                 r_x,r_y,r_w,r_h = cv2.boundingRect(y)
                 center_x = r_x + int(round(r_w / 2)) + NOTE_X_OFFSET
                 center_y = r_y + int(round(r_h / 2)) + NOTE_Y_OFFSET
