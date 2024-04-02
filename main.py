@@ -507,7 +507,6 @@ def main():
     decision_margin_min_ntt = NTGetDouble(ntinst.getDoubleTopic(DECISION_MARGIN_MIN_TOPIC_NAME), DECISION_MARGIN_DEFAULT, DECISION_MARGIN_DEFAULT, DECISION_MARGIN_DEFAULT)
     tagconfigfile_ntt = NTGetString(ntinst.getStringTopic(TAG_CONFIG_FILE_TOPIC_NAME), TAG_CONFIG_FILE_DEFAULT,TAG_CONFIG_FILE_DEFAULT, TAG_CONFIG_FILE_DEFAULT)
     noteconfigfile_ntt = NTGetString(ntinst.getStringTopic(NOTE_CONFIG_FILE_TOPIC_NAME), NOTE_CONFIG_FILE_DEFAULT,NOTE_CONFIG_FILE_DEFAULT, NOTE_CONFIG_FILE_DEFAULT)
-    savefile_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Save File"), False, False, False)
     configfilefail_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Config File Fail"), False, False, False)
     tag_active_ntt = NTGetBoolean(ntinst.getBooleanTopic(TAG_ACTIVE_TOPIC_NAME), True, True, True)
     note_active_ntt = NTGetBoolean(ntinst.getBooleanTopic(NOTE_ACTIVE_TOPIC_NAME), True, True, True)
@@ -557,7 +556,10 @@ def main():
     note_ae_ntt = NTGetBoolean(ntinst.getBooleanTopic(NOTE_AE_TOPIC_NAME), AE_DEFAULT, AE_DEFAULT, AE_DEFAULT)
     note_exposure_ntt = NTGetDouble(ntinst.getDoubleTopic(NOTE_EXPOSURE_TOPIC_NAME), EXPOSURE_DEFAULT, EXPOSURE_DEFAULT, EXPOSURE_DEFAULT)
 
-    savefile_camera_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Camera Save File"), False, False, False)
+    tag_config_savefile_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Tag Config Save"), False, False, False)
+    note_config_savefile_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Note Config Save"), False, False, False)
+    tag_camera_safefile_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Tag Camera Save"), False, False, False)
+    note_camera_savefile_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Note Camera Save"), False, False, False)
 
     gen_note_y_offset_ntt =  NTGetDouble(ntinst.getDoubleTopic(GEN_NOTE_Y_OFFSET_TOPIC_NAME), 0, 0, 0)
 
@@ -772,9 +774,9 @@ def main():
                         config_gen.set('GENERAL', 'Manual Exposure Time', str(exp_time))
                         cam_settings_changed = True
 
-                    if cam_settings_changed == True and savefile_camera_ntt.get() == True:
+                    if cam_settings_changed == True and tag_camera_safefile_ntt.get() == True:
                         file_write_gen(brightness, contrast, ae_mode, exp_time, NOTE_Y_OFFSET)
-                        savefile_camera_ntt.set(False)
+                        tag_camera_safefile_ntt.set(False)
                         cam_settings_changed = False
 
             else:
@@ -816,9 +818,9 @@ def main():
                         config_gen.set('GENERAL', 'Y Offset', str(NOTE_Y_OFFSET))
                         cam_settings_changed = True
                     
-                    if cam_settings_changed == True and savefile_camera_ntt.get() == True:
+                    if cam_settings_changed == True and note_camera_savefile_ntt.get() == True:
                         file_write_gen(brightness, contrast, ae_mode, exp_time, NOTE_Y_OFFSET)
-                        savefile_camera_ntt.set(False)
+                        note_camera_savefile_ntt.set(False)
                         cam_settings_changed = False
 
 
@@ -836,7 +838,7 @@ def main():
             else:                
                 if db_n == True:
                     print(f'sec={seconds} notes: ave fps={round(fps_av,0)} fps min={round(fps_av_min,0)} fps max={round(fps_av_max,0)}')
-                    print(f'NOTE_Y_OFFSET={NOTE_Y_OFFSET}')
+                    #print(f'NOTE_Y_OFFSET={NOTE_Y_OFFSET}')
                 else:
                     print(f'{seconds}')
             
@@ -1016,14 +1018,14 @@ def main():
                     if mismatch == False:
                         cv2.imwrite(f'tag_images/tag_{str(rio_time)}.jpg', img)
                 NetworkTableInstance.getDefault().flush()
-                if savefile_ntt.get() == True:
+                if tag_config_savefile_ntt.get() == True:
                     print("write tags")
                     file_write_tags(tagconfigfile_ntt.get(), threads_ntt.get(), \
                         quadDecimate_ntt.get(), blur_ntt.get(), refineEdges_ntt.get(), \
                         decodeSharpening_ntt.get(), ATDebug_ntt.get(), \
                         decision_margin_min_ntt.get(), decision_margin_max_ntt.get(), \
                         tag_crop_x_ntt.get(), tag_crop_y_ntt.get(), tag_corrected_errors_ntt.get()) 
-                    savefile_ntt.set(False)
+                    tag_config_savefile_ntt.set(False)
 
         #NOTE!!!
         elif vision_type == 'note':
@@ -1159,7 +1161,7 @@ def main():
             if db_n == True:
                 outputStreamNote.putFrame(img) # send to dashboard
                 outputMask.putFrame(img_mask) # send to dashboard
-                if savefile_ntt.get() == True:
+                if note_config_savefile_ntt.get() == True:
                     file_write_notes(noteconfigfile_ntt.get(), \
                         note_min_h_ntt.get(), \
                         note_min_s_ntt.get(), \
@@ -1168,7 +1170,7 @@ def main():
                         note_max_s_ntt.get(), \
                         note_max_v_ntt.get(), \
                         note_min_area_ntt.get())
-                    savefile_ntt.set(False)
+                    note_config_savefile_ntt.set(False)
                     
         else:
             continue
