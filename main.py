@@ -332,6 +332,21 @@ def file_read_note(parser, configfile_failure_ntt):
             print({'VISION': dict(parser['VISION'])})
         configfile_failure_ntt.set(False) # config file recreated
 
+def file_write_gen(brightness, contrast, ae_mode, man_exposure_time, y_offset):
+
+    parser = configparser.ConfigParser()
+    parser.read("/home/pi/" + GEN_CONFIG_FILE_DEFAULT)
+    parser.set('GENERAL', 'Brightness', str(brightness))
+    parser.set('GENERAL', 'Contrast', str(contrast))
+    parser.set('GENERAL', 'Auto Exposure', str(ae_mode))
+    parser.set('GENERAL', 'Manual Exposure Time', str(man_exposure_time))
+    parser.set('GENERAL', 'Y Offset', str(y_offset))
+
+    with open("/home/pi/" + GEN_CONFIG_FILE_DEFAULT, 'w') as config:
+        parser.write(config)
+        print('wrote gen file: ' + "/home/pi/" + GEN_CONFIG_FILE_DEFAULT)
+        print({'GENERAL': dict(parser['GENERAL'])})
+
 def nt_update_tags(config,
               threads,
               quadDecimate,
@@ -389,7 +404,8 @@ def nt_update_gen(config,
               note_brightness,
               note_contrast,
               note_ae,
-              note_exposure):
+              note_exposure,
+              y_offset):
     # sync the stuff in the file with matching values in the file
 
     if get_type() == 'tag':
@@ -397,11 +413,13 @@ def nt_update_gen(config,
         tag_contrast.set(float(config.get('GENERAL', 'Contrast')))
         tag_ae.set(bool(config.get('GENERAL', 'Auto Exposure')))
         tag_exposure.set(float(config.get('GENERAL', 'Manual Exposure Time')))
+        y_offset.set(float(config.get('GENERAL', 'Y Offset')))
     else:
         note_brightness.set(float(config.get('GENERAL', 'Brightness')))
         note_contrast.set(float(config.get('GENERAL', 'Contrast')))
         note_ae.set(bool(config.get('GENERAL', 'Auto Exposure')))
         note_exposure.set(float(config.get('GENERAL', 'Manual Exposure Time')))
+        y_offset.set(float(config.get('GENERAL', 'Y Offset')))
 
 '''
 all data to send is packaged as an array of bytes, using a Python bytearray, in big-endian format:
@@ -539,6 +557,10 @@ def main():
     note_ae_ntt = NTGetBoolean(ntinst.getBooleanTopic(NOTE_AE_TOPIC_NAME), AE_DEFAULT, AE_DEFAULT, AE_DEFAULT)
     note_exposure_ntt = NTGetDouble(ntinst.getDoubleTopic(NOTE_EXPOSURE_TOPIC_NAME), EXPOSURE_DEFAULT, EXPOSURE_DEFAULT, EXPOSURE_DEFAULT)
 
+    savefile_camera_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Camera Save File"), False, False, False)
+
+    gen_note_y_offset_ntt =  NTGetDouble(ntinst.getDoubleTopic(GEN_NOTE_Y_OFFSET_TOPIC_NAME), 0, 0, 0)
+
     detector = robotpy_apriltag.AprilTagDetector()
     #detector.addFamily("tag16h5")
     detector.addFamily("tag36h11")
@@ -568,7 +590,7 @@ def main():
         note_min_h_ntt, note_min_s_ntt, note_min_v_ntt, note_max_h_ntt, note_max_s_ntt, note_max_v_ntt, \
         note_min_area_ntt)
     nt_update_gen(config_gen, tag_brightness_ntt, tag_contrast_ntt, tag_ae_ntt, tag_exposure_ntt, \
-        note_brightness_ntt, note_contrast_ntt, note_ae_ntt, note_exposure_ntt)
+        note_brightness_ntt, note_contrast_ntt, note_ae_ntt, note_exposure_ntt, gen_note_y_offset_ntt)
     
     detectorConfig = robotpy_apriltag.AprilTagDetector.Config()
 
@@ -698,7 +720,13 @@ def main():
     note_last_contrast = None
     note_last_ae_mode = None
 
+    brightness = BRIGHTNESS_DEFAULT
+    contrast = CONTRAST_DEFAULT
+    ae_mode = AE_DEFAULT
+    exp_time = EXPOSURE_DEFAULT
+    cam_settings_changed = False
 
+    NOTE_Y_OFFSET = int(config_gen.get('GENERAL', 'Y Offset'))
 
     while True:
 
@@ -710,54 +738,89 @@ def main():
             seconds = seconds + 1
             temp_sec = temp_sec + 1
 
-            db_t = debug_tag_ntt.get()
-            db_n = debug_note_ntt.get()
+            if vision_type == 'tag':
 
-            if db_t == True and vision_type == 'tag':
+                db_t = debug_tag_ntt.get()
 
-                if tag_last_brightness != tag_brightness_ntt.get():
-                    picam2.set_controls({'Brightness': float(tag_brightness_ntt.get())})
-                    config_gen.set('GENERAL', 'Brightness', str(tag_brightness_ntt.get()))
-                    tag_last_brightness = tag_brightness_ntt.get()
+                if db_t == True:
 
-                if tag_last_contrast != tag_contrast_ntt.get():
-                    picam2.set_controls({'Contrast': float(tag_contrast_ntt.get())})
-                    config_gen.set('GENERAL', 'Contrast', str(tag_contrast_ntt.get()))
-                    tag_last_contrast = tag_contrast_ntt.get()
+                    if tag_last_brightness != tag_brightness_ntt.get():
+                        brightness = float(tag_brightness_ntt.get())
+                        picam2.set_controls({'Brightness': brightness})
+                        config_gen.set('GENERAL', 'Brightness', str(brightness))
+                        tag_last_brightness = brightness
+                        cam_settings_changed = True
 
-                if tag_last_ae_mode != tag_ae_ntt.get():
-                    picam2.set_controls({'AeEnable': bool(tag_ae_ntt.get())})
-                    config_gen.set('GENERAL', 'AeEnable', str(tag_ae_ntt.get()))
-                    tag_last_ae_mode = tag_ae_ntt.get()
+                    if tag_last_contrast != tag_contrast_ntt.get():
+                        contrast = float(tag_contrast_ntt.get())
+                        picam2.set_controls({'Contrast': contrast})
+                        config_gen.set('GENERAL', 'Contrast', str(contrast))
+                        tag_last_contrast = contrast
+                        cam_settings_changed = True
 
-                if tag_last_ae_mode == False:
-                    exp_time = int(round(tag_exposure_ntt.get()))
-                    picam2.set_controls({"ExposureTime": \
-                        exp_time, "AnalogueGain": 1.0})
-                    config_gen.set('GENERAL', 'Manual Exposure Time', str(exp_time))
+                    if tag_last_ae_mode != tag_ae_ntt.get():
+                        ae_mode = bool(tag_ae_ntt.get())
+                        picam2.set_controls({'AeEnable': bool(ae_mode)})
+                        config_gen.set('GENERAL', 'AeEnable', str(ae_mode))
+                        tag_last_ae_mode = ae_mode
+                        cam_settings_changed = True
 
-            if db_n == True and vision_type == 'note':
+                    if tag_last_ae_mode == False:
+                        exp_time = int(round(tag_exposure_ntt.get()))
+                        picam2.set_controls({"ExposureTime": \
+                            exp_time, "AnalogueGain": 1.0})
+                        config_gen.set('GENERAL', 'Manual Exposure Time', str(exp_time))
+                        cam_settings_changed = True
 
-                if note_last_brightness != note_brightness_ntt.get():
-                    picam2.set_controls({'Brightness': float(note_brightness_ntt.get())})
-                    config_gen.set('GENERAL', 'Brightness', str(note_brightness_ntt.get()))
-                    note_last_brightness = note_brightness_ntt.get()
+                    if cam_settings_changed == True and savefile_camera_ntt.get() == True:
+                        file_write_gen(brightness, contrast, ae_mode, exp_time, NOTE_Y_OFFSET)
+                        savefile_camera_ntt.set(False)
+                        cam_settings_changed = False
 
-                if note_last_contrast != note_contrast_ntt.get():
-                    picam2.set_controls({'Contrast': float(note_contrast_ntt.get())})
-                    config_gen.set('GENERAL', 'Contrast', str(note_contrast_ntt.get()))
-                    note_last_contrast = note_contrast_ntt.get()
+            else:
 
-                if note_last_ae_mode != note_ae_ntt.get():
-                    picam2.set_controls({'AeEnable': bool(note_ae_ntt.get())})
-                    config_gen.set('GENERAL', 'AeEnable', str(note_ae_ntt.get()))
-                    note_last_ae_mode = note_ae_ntt.get()
+                db_n = debug_note_ntt.get()
 
-                if note_last_ae_mode == False:
-                    exp_time = int(round(note_exposure_ntt.get()))
-                    picam2.set_controls({"ExposureTime": \
-                        exp_time, "AnalogueGain": 1.0})
-                    config_gen.set('GENERAL', 'Manual Exposure Time', str(exp_time))
+                if db_n == True:
+
+                    if note_last_brightness != note_brightness_ntt.get():
+                        brightness = float(note_brightness_ntt.get())
+                        picam2.set_controls({'Brightness': float(brightness)})
+                        config_gen.set('GENERAL', 'Brightness', str(brightness))
+                        note_last_brightness = brightness
+                        cam_settings_changed = True
+
+                    if note_last_contrast != note_contrast_ntt.get():
+                        contrast = float(note_contrast_ntt.get())
+                        picam2.set_controls({'Contrast': float(contrast)})
+                        config_gen.set('GENERAL', 'Contrast', str(contrast))
+                        note_last_contrast = contrast
+                        cam_settings_changed = True
+
+                    if note_last_ae_mode != note_ae_ntt.get():
+                        ae_mode = bool(tag_ae_ntt.get())
+                        picam2.set_controls({'AeEnable': bool(ae_mode)})
+                        config_gen.set('GENERAL', 'AeEnable', str(ae_mode))
+                        note_last_ae_mode = ae_mode
+                        cam_settings_changed = True
+
+                    if note_last_ae_mode == False:
+                        exp_time = int(round(note_exposure_ntt.get(),0))
+                        picam2.set_controls({"ExposureTime": \
+                            exp_time, "AnalogueGain": 1.0})
+                        config_gen.set('GENERAL', 'Manual Exposure Time', str(exp_time))
+                        cam_settings_changed = True
+
+                    if NOTE_Y_OFFSET != gen_note_y_offset_ntt.get():
+                        NOTE_Y_OFFSET = int(round(gen_note_y_offset_ntt.get(),0))
+                        config_gen.set('GENERAL', 'Y Offset', str(NOTE_Y_OFFSET))
+                        cam_settings_changed = True
+                    
+                    if cam_settings_changed == True and savefile_camera_ntt.get() == True:
+                        file_write_gen(brightness, contrast, ae_mode, exp_time, NOTE_Y_OFFSET)
+                        savefile_camera_ntt.set(False)
+                        cam_settings_changed = False
+
 
             if vision_type == 'tag':
                 tag_uptime_ntt.set(seconds)
@@ -773,6 +836,7 @@ def main():
             else:                
                 if db_n == True:
                     print(f'sec={seconds} notes: ave fps={round(fps_av,0)} fps min={round(fps_av_min,0)} fps max={round(fps_av_max,0)}')
+                    print(f'NOTE_Y_OFFSET={NOTE_Y_OFFSET}')
                 else:
                     print(f'{seconds}')
             
@@ -910,6 +974,8 @@ def main():
                 pose_data_bytes_ntt.set(pose_data)
                 NetworkTableInstance.getDefault().flush()
 
+            db_t = debug_tag_ntt.get()
+
             if db_t == True:
                 if len(tags) > 0:
                     header, rot_data, trans_data = \
@@ -962,6 +1028,8 @@ def main():
         #NOTE!!!
         elif vision_type == 'note':
             #if note_enable_ntt.get() == True:
+
+            db_n = debug_note_ntt.get()
 
             if db_n == True:
                 note_min_h = int(note_min_h_ntt.get())
