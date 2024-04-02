@@ -76,6 +76,9 @@ BRIGHTNESS_DEFAULT = 0.0
 TAG_CONTRAST_TOPIC_NAME = "/Vision/Tag Contrast"
 NOTE_CONTRAST_TOPIC_NAME = "/Vision/Note Contrast"
 CONTRAST_DEFAULT = 1.0
+
+GEN_NOTE_Y_OFFSET_TOPIC_NAME = "/Vision/Note Y Offset"
+
 TAG_ERRORS_TOPIC_NAME = "/Vision/Tag Corrected Errors"
 TAG_ERRORS_DEFAULT = 0
 TAG_AE_TOPIC_NAME = "/Vision/Tag Auto Exposure"
