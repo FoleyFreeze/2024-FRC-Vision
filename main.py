@@ -279,6 +279,7 @@ def file_read_gen(parser, configfile_failure_ntt):
         parser.set('GENERAL', 'Contrast', str(CONTRAST_DEFAULT))
         parser.set('GENERAL', 'Auto Exposure', str(AE_DEFAULT))
         parser.set('GENERAL', 'Manual Exposure Time', str(EXPOSURE_DEFAULT))
+        parser.set('GENERAL', 'Y Offset', str(5))
 
         with open("/home/pi/" + GEN_CONFIG_FILE_DEFAULT, 'w') as config:
             parser.write(config)
@@ -362,19 +363,30 @@ def nt_update_tags(config,
               configfile
             ):
     # sync the stuff in the file with matching values in the file
+    t = float(config.get('VISION', THREADS_TOPIC_NAME))
+    qd = float(config.get('VISION', DECIMATE_TOPIC_NAME))
+    b = float(config.get('VISION', BLUR_TOPIC_NAME))
+    re = ast.literal_eval(config.get('VISION', REFINE_EDGES_TOPIC_NAME))
+    ds = float(config.get('VISION', SHARPENING_TOPIC_NAME))
+    atd = ast.literal_eval(config.get('VISION', APRILTAG_DEBUG_MODE_TOPIC_NAME))
+    dm_min = float(config.get('VISION', DECISION_MARGIN_MIN_TOPIC_NAME))
+    dm_max = float(config.get('VISION', DECISION_MARGIN_MAX_TOPIC_NAME))
+    c_x = float(config.get('VISION', TAG_CROP_TOP_TOPIC_NAME))
+    c_y = float(config.get('VISION', TAG_CROP_BOTTOM_TOPIC_NAME))
+    e = float(config.get('VISION', TAG_ERRORS_TOPIC_NAME))
 
-    threads.set(float(config.get('VISION', THREADS_TOPIC_NAME)))
-    quadDecimate.set(float(config.get('VISION', DECIMATE_TOPIC_NAME)))
-    blur.set(float(config.get('VISION', BLUR_TOPIC_NAME)))
-    refineEdges.set(ast.literal_eval(config.get('VISION', REFINE_EDGES_TOPIC_NAME)))
-    decodeSharpening.set(float(config.get('VISION', SHARPENING_TOPIC_NAME)))
-    ATDebug.set(ast.literal_eval(config.get('VISION', APRILTAG_DEBUG_MODE_TOPIC_NAME)))
-    decision_min.set(float(config.get('VISION', DECISION_MARGIN_MIN_TOPIC_NAME)))
-    decision_max.set(float(config.get('VISION', DECISION_MARGIN_MAX_TOPIC_NAME)))
-    crop_x.set(float(config.get('VISION', TAG_CROP_TOP_TOPIC_NAME)))
-    crop_y.set(float(config.get('VISION', TAG_CROP_BOTTOM_TOPIC_NAME)))
-    errors.set(float(config.get('VISION', TAG_ERRORS_TOPIC_NAME)))
-    configfile.set(str(config.get('VISION', TAG_CONFIG_FILE_TOPIC_NAME)))
+    threads.set(t)
+    quadDecimate.set(qd)
+    blur.set(b)
+    refineEdges.set(re)
+    decodeSharpening.set(ds)
+    ATDebug.set(atd)
+    decision_min.set(dm_min)
+    decision_max.set(dm_max)
+    crop_x.set(c_x)
+    crop_y.set(c_y)
+    errors.set(e)
+    #configfile.set(str(config.get('VISION', TAG_CONFIG_FILE_TOPIC_NAME)))
 
 def nt_update_notes(config,
               configfile,
@@ -387,16 +399,28 @@ def nt_update_notes(config,
               min_area):
     # sync the stuff in the file with matching values in the file
 
-    configfile.set(str(config.get('VISION', NOTE_CONFIG_FILE_TOPIC_NAME)))
-    min_h.set(float(config.get('VISION', NOTE_MIN_HUE_TOPIC_NAME)))
-    min_s.set(float(config.get('VISION', NOTE_MIN_SAT_TOPIC_NAME)))
-    min_v.set(float(config.get('VISION', NOTE_MIN_VAL_TOPIC_NAME)))
-    max_h.set(float(config.get('VISION', NOTE_MAX_HUE_TOPIC_NAME)))
-    max_s.set(float(config.get('VISION', NOTE_MAX_SAT_TOPIC_NAME)))
-    max_v.set(float(config.get('VISION', NOTE_MAX_VAL_TOPIC_NAME)))
-    min_area.set(float(config.get('VISION', NOTE_MIN_AREA_TOPIC_NAME)))
+    print('dump note file:')
+    print({'VISION': dict(config['VISION'])})
 
-def nt_update_gen(config,
+    mi_h = float(config.get('VISION', NOTE_MIN_HUE_TOPIC_NAME))
+    mi_s = float(config.get('VISION', NOTE_MIN_SAT_TOPIC_NAME))
+    mi_v = float(config.get('VISION', NOTE_MIN_VAL_TOPIC_NAME))
+
+    mx_h = float(config.get('VISION', NOTE_MAX_HUE_TOPIC_NAME))
+    mx_s = float(config.get('VISION', NOTE_MAX_SAT_TOPIC_NAME))
+    mx_v = float(config.get('VISION', NOTE_MAX_VAL_TOPIC_NAME))
+
+    #configfile.set(str(config.get('VISION', NOTE_CONFIG_FILE_TOPIC_NAME)))
+    min_h.set(mi_h)
+    min_s.set(mi_s)
+    min_v.set(mi_v)
+    max_h.set(mx_h)
+    max_s.set(mx_s)
+    max_v.set(mx_v)
+    #min_area.set(float(config.get('VISION', NOTE_MIN_AREA_TOPIC_NAME)))
+
+def nt_update_gen(type,
+                  config,
               tag_brightness,
               tag_contrast,
               tag_ae,
@@ -407,19 +431,23 @@ def nt_update_gen(config,
               note_exposure,
               y_offset):
     # sync the stuff in the file with matching values in the file
+    b = float(config.get('GENERAL', 'Brightness'))
+    c = float(config.get('GENERAL', 'Contrast'))
+    ae = bool(config.get('GENERAL', 'Auto Exposure'))
+    exp = float(config.get('GENERAL', 'Manual Exposure Time'))
+    y = float(config.get('GENERAL', 'Y Offset'))
 
-    if get_type() == 'tag':
-        tag_brightness.set(float(config.get('GENERAL', 'Brightness')))
-        tag_contrast.set(float(config.get('GENERAL', 'Contrast')))
-        tag_ae.set(bool(config.get('GENERAL', 'Auto Exposure')))
-        tag_exposure.set(float(config.get('GENERAL', 'Manual Exposure Time')))
-        y_offset.set(float(config.get('GENERAL', 'Y Offset')))
+    if type == 'tag':
+        tag_brightness.set(b)
+        tag_contrast.set(c)
+        tag_ae.set(ae)
+        tag_exposure.set(exp)
     else:
-        note_brightness.set(float(config.get('GENERAL', 'Brightness')))
-        note_contrast.set(float(config.get('GENERAL', 'Contrast')))
-        note_ae.set(bool(config.get('GENERAL', 'Auto Exposure')))
-        note_exposure.set(float(config.get('GENERAL', 'Manual Exposure Time')))
-        y_offset.set(float(config.get('GENERAL', 'Y Offset')))
+        note_brightness.set(b)
+        note_contrast.set(c)
+        note_ae.set(ae)
+        note_exposure.set(exp)
+        y_offset.set(y)
 
 '''
 all data to send is packaged as an array of bytes, using a Python bytearray, in big-endian format:
@@ -582,16 +610,17 @@ def main():
     '''
 
     file_read_tag(config_tag, configfilefail_ntt)
-    file_read_note(config_note, configfilefail_ntt)
-    file_read_gen(config_gen, configfilefail_ntt)
-
     nt_update_tags(config_tag,threads_ntt, quadDecimate_ntt, blur_ntt, refineEdges_ntt, \
         decodeSharpening_ntt, ATDebug_ntt, decision_margin_min_ntt, decision_margin_max_ntt, \
         tag_crop_x_ntt, tag_crop_y_ntt, tag_corrected_errors_ntt, tagconfigfile_ntt)
+        
+    file_read_note(config_note, configfilefail_ntt)
     nt_update_notes(config_note, noteconfigfile_ntt, \
         note_min_h_ntt, note_min_s_ntt, note_min_v_ntt, note_max_h_ntt, note_max_s_ntt, note_max_v_ntt, \
         note_min_area_ntt)
-    nt_update_gen(config_gen, tag_brightness_ntt, tag_contrast_ntt, tag_ae_ntt, tag_exposure_ntt, \
+
+    file_read_gen(config_gen, configfilefail_ntt)
+    nt_update_gen(vision_type, config_gen, tag_brightness_ntt, tag_contrast_ntt, tag_ae_ntt, tag_exposure_ntt, \
         note_brightness_ntt, note_contrast_ntt, note_ae_ntt, note_exposure_ntt, gen_note_y_offset_ntt)
     
     detectorConfig = robotpy_apriltag.AprilTagDetector.Config()
@@ -1076,7 +1105,7 @@ def main():
                 area = cv2.contourArea(y)
 
                 #uncomment the following block to get raw data output for debugging and calibrating distance / angle
-                ''' 
+                '''
                 r_x,r_y,r_w,r_h = cv2.boundingRect(y)
                 center_x = r_x + int(round(r_w / 2)) + NOTE_X_OFFSET
                 center_y = r_y + int(round(r_h / 2)) + NOTE_Y_OFFSET
@@ -1084,7 +1113,7 @@ def main():
                 print(f'ar={area:4.1f} ex={extent:1.2f} note_x={center_x} note_y={center_y}')
                 '''
 
-                if area > 25:
+                if area > 300:
                     r_x,r_y,r_w,r_h = cv2.boundingRect(y)
                     center_y = r_y + int(round(r_h / 2)) + NOTE_Y_OFFSET
 
