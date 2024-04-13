@@ -588,7 +588,7 @@ def main():
     note_config_savefile_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Note Config Save"), False, False, False)
     tag_camera_safefile_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Tag Camera Save"), False, False, False)
     note_camera_savefile_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Note Camera Save"), False, False, False)
-
+    note_camera_refresh_nt_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Note Camera Refresh Nt"), False, False, False)
     gen_note_y_offset_ntt =  NTGetDouble(ntinst.getDoubleTopic(GEN_NOTE_Y_OFFSET_TOPIC_NAME), 0, 0, 0)
 
     detector = robotpy_apriltag.AprilTagDetector()
@@ -813,6 +813,16 @@ def main():
                 db_n = debug_note_ntt.get()
 
                 if db_n == True:
+                    
+                    if note_camera_refresh_nt_ntt.get() == True:
+                        file_read_note(config_note, configfilefail_ntt)
+                        nt_update_notes(config_note, noteconfigfile_ntt, \
+                            note_min_h_ntt, note_min_s_ntt, note_min_v_ntt, note_max_h_ntt, note_max_s_ntt, note_max_v_ntt, \
+                            note_min_area_ntt)
+                        file_read_gen(config_gen, configfilefail_ntt)
+                        nt_update_gen(vision_type, config_gen, tag_brightness_ntt, tag_contrast_ntt, tag_ae_ntt, tag_exposure_ntt, \
+                            note_brightness_ntt, note_contrast_ntt, note_ae_ntt, note_exposure_ntt, gen_note_y_offset_ntt)
+                        note_camera_refresh_nt_ntt.set(False)
 
                     if note_last_brightness != note_brightness_ntt.get():
                         brightness = float(note_brightness_ntt.get())
