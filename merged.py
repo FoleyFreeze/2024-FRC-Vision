@@ -1450,13 +1450,14 @@ def main():
                 area = cv2.contourArea(y)
 
                 #uncomment the following block to get raw data output for debugging and calibrating distance / angle
-                '''
+                
                 r_x,r_y,r_w,r_h = cv2.boundingRect(y)
-                center_x = r_x + int(round(r_w / 2)) + FUEL_X_OFFSET
-                center_y = r_y + int(round(r_h / 2)) + FUEL_Y_OFFSET
-                extent = float(area) / (r_w * r_h)
-                print(f'ar={area:4.1f} ex={extent:1.2f} fuel_x={center_x} fuel_y={center_y}')
-                '''
+                cv2.rectangle(img, (r_x, r_y), (r_x + r_w, r_y + r_h), (0, 0, 0), 2)
+                #center_x = r_x + int(round(r_w / 2)) + FUEL_X_OFFSET
+                #center_y = r_y + int(round(r_h / 2)) + FUEL_Y_OFFSET
+                #extent = float(area) / (r_w * r_h)
+                #print(f'ar={area:4.1f} ex={extent:1.2f} fuel_x={center_x} fuel_y={center_y}')
+                
 
                 if area > 300:
                     r_x,r_y,r_w,r_h = cv2.boundingRect(y)
