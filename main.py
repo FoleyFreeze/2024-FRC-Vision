@@ -8,7 +8,7 @@ class PieceData:
         self.angle = angle
 
 
-def note_regress_distance(y):
+def fuel_regress_distance(y):
     terms = [
      5.6042530346620970e+002,
     -2.1541292739721818e+001,
@@ -29,7 +29,7 @@ def note_regress_distance(y):
         t *= y
     return r
 
-def note_regress_px_per_deg(x):
+def fuel_regress_px_per_deg(x):
     terms = [
      3.0950248997394785e+000,
      1.5607142915418259e-001,
@@ -190,7 +190,7 @@ def file_write_tags(file,
         print({'VISION': dict(parser['VISION'])})
     '''
 
-def file_write_notes(file,
+def file_write_fuel(file,
                 min_h,
                 min_s,
                 min_v,
@@ -202,21 +202,21 @@ def file_write_notes(file,
     parser = configparser.ConfigParser()
 
     parser.add_section('VISION')
-    parser.set('VISION', NOTE_CONFIG_FILE_TOPIC_NAME, str(file))
-    parser.set('VISION', NOTE_MIN_HUE_TOPIC_NAME, str(round(min_h)))
-    parser.set('VISION', NOTE_MIN_SAT_TOPIC_NAME, str(round(min_s)))
-    parser.set('VISION', NOTE_MIN_VAL_TOPIC_NAME, str(round(min_v)))
-    parser.set('VISION', NOTE_MAX_HUE_TOPIC_NAME, str(round(max_h)))
-    parser.set('VISION', NOTE_MAX_SAT_TOPIC_NAME, str(round(max_s)))
-    parser.set('VISION', NOTE_MAX_VAL_TOPIC_NAME, str(round(max_v)))
-    parser.set('VISION', NOTE_MIN_AREA_TOPIC_NAME, str(round(min_area)))
+    parser.set('VISION', FUEL_CONFIG_FILE_TOPIC_NAME, str(file))
+    parser.set('VISION', FUEL_MIN_HUE_TOPIC_NAME, str(round(min_h)))
+    parser.set('VISION', FUEL_MIN_SAT_TOPIC_NAME, str(round(min_s)))
+    parser.set('VISION', FUEL_MIN_VAL_TOPIC_NAME, str(round(min_v)))
+    parser.set('VISION', FUEL_MAX_HUE_TOPIC_NAME, str(round(max_h)))
+    parser.set('VISION', FUEL_MAX_SAT_TOPIC_NAME, str(round(max_s)))
+    parser.set('VISION', FUEL_MAX_VAL_TOPIC_NAME, str(round(max_v)))
+    parser.set('VISION', FUEL_MIN_AREA_TOPIC_NAME, str(round(min_area)))
     
     #print(f'file={file} mh={str(min_h)} ms={str(min_s)} mv={str(min_v)} xh={str(max_h)} xs={str(max_s)} xv={str(max_v)}')
 
     #HEY HEY HEY!!! LOOK AT MEEEEE!!!! >>>pscp.exe pi@10.2.33.177:/home/pi/config.ini C:\Users\23JMurphy\Downloads will copy any file from pi to windows<<<
     with open(file, 'w') as config:
         parser.write(config)
-        print('wrote note file:')
+        print('wrote fuel file:')
         print({'VISION': dict(parser['VISION'])})
 
 def get_type():
@@ -306,30 +306,30 @@ def tag_check(tag,config_tag):
         print(f'id={tag.getId()} e={tag.getHamming()} e_max={e_max} DM={tag.getDecisionMargin()} dm_min={dm_min} dm_max={dm_max}')
         return False
 
-def file_read_note(parser, configfile_failure_ntt):
-    config_exists = os.path.isfile(NOTE_CONFIG_FILE_DEFAULT)
+def file_read_fuel(parser, configfile_failure_ntt):
+    config_exists = os.path.isfile(FUEL_CONFIG_FILE_DEFAULT)
     if config_exists == True:
-        parser.read(NOTE_CONFIG_FILE_DEFAULT)
+        parser.read(FUEL_CONFIG_FILE_DEFAULT)
         configfile_failure_ntt.set(False) #if it works mark no error
-        print('read note file:')
+        print('read fuel file:')
         print({'VISION': dict(parser['VISION'])})
     else: # re-create config and container file to default
         configfile_failure_ntt.set(True) # set error for config file
 
         parser.add_section('VISION')
         
-        parser.set('VISION', NOTE_CONFIG_FILE_TOPIC_NAME, str(NOTE_CONFIG_FILE_DEFAULT))
-        parser.set('VISION', NOTE_MIN_HUE_TOPIC_NAME, str(NOTE_MIN_HUE))
-        parser.set('VISION', NOTE_MIN_SAT_TOPIC_NAME, str(NOTE_MIN_SAT))
-        parser.set('VISION', NOTE_MIN_VAL_TOPIC_NAME, str(NOTE_MIN_VAL))
-        parser.set('VISION', NOTE_MAX_HUE_TOPIC_NAME, str(NOTE_MAX_HUE))
-        parser.set('VISION', NOTE_MAX_SAT_TOPIC_NAME, str(NOTE_MAX_SAT))
-        parser.set('VISION', NOTE_MAX_VAL_TOPIC_NAME, str(NOTE_MAX_VAL))
-        parser.set('VISION', NOTEMIN_AREA_TOPIC_NAME, str(NOTE_MIN_AREA))
+        parser.set('VISION', FUEL_CONFIG_FILE_TOPIC_NAME, str(FUEL_CONFIG_FILE_DEFAULT))
+        parser.set('VISION', FUEL_MIN_HUE_TOPIC_NAME, str(FUEL_MIN_HUE))
+        parser.set('VISION', FUEL_MIN_SAT_TOPIC_NAME, str(FUEL_MIN_SAT))
+        parser.set('VISION', FUEL_MIN_VAL_TOPIC_NAME, str(FUEL_MIN_VAL))
+        parser.set('VISION', FUEL_MAX_HUE_TOPIC_NAME, str(FUEL_MAX_HUE))
+        parser.set('VISION', FUEL_MAX_SAT_TOPIC_NAME, str(FUEL_MAX_SAT))
+        parser.set('VISION', FUEL_MAX_VAL_TOPIC_NAME, str(FUEL_MAX_VAL))
+        parser.set('VISION', FUEL_MIN_AREA_TOPIC_NAME, str(FUEL_MIN_AREA))
 
-        with open("/home/pi/" + NOTE_CONFIG_FILE_DEFAULT, 'w') as config:
+        with open("/home/pi/" + FUEL_CONFIG_FILE_DEFAULT, 'w') as config:
             parser.write(config)
-            print('wrote note file:')
+            print('wrote fuel file:')
             print({'VISION': dict(parser['VISION'])})
         configfile_failure_ntt.set(False) # config file recreated
 
@@ -388,7 +388,7 @@ def nt_update_tags(config,
     errors.set(e)
     #configfile.set(str(config.get('VISION', TAG_CONFIG_FILE_TOPIC_NAME)))
 
-def nt_update_notes(config,
+def nt_update_fuel(config,
               configfile,
               min_h,
               min_s,
@@ -399,25 +399,25 @@ def nt_update_notes(config,
               min_area):
     # sync the stuff in the file with matching values in the file
 
-    print('dump note file:')
+    print('dump fuel file:')
     print({'VISION': dict(config['VISION'])})
 
-    mi_h = float(config.get('VISION', NOTE_MIN_HUE_TOPIC_NAME))
-    mi_s = float(config.get('VISION', NOTE_MIN_SAT_TOPIC_NAME))
-    mi_v = float(config.get('VISION', NOTE_MIN_VAL_TOPIC_NAME))
+    mi_h = float(config.get('VISION', FUEL_MIN_HUE_TOPIC_NAME))
+    mi_s = float(config.get('VISION', FUEL_MIN_SAT_TOPIC_NAME))
+    mi_v = float(config.get('VISION', FUEL_MIN_VAL_TOPIC_NAME))
 
-    mx_h = float(config.get('VISION', NOTE_MAX_HUE_TOPIC_NAME))
-    mx_s = float(config.get('VISION', NOTE_MAX_SAT_TOPIC_NAME))
-    mx_v = float(config.get('VISION', NOTE_MAX_VAL_TOPIC_NAME))
+    mx_h = float(config.get('VISION', FUEL_MAX_HUE_TOPIC_NAME))
+    mx_s = float(config.get('VISION', FUEL_MAX_SAT_TOPIC_NAME))
+    mx_v = float(config.get('VISION', FUEL_MAX_VAL_TOPIC_NAME))
 
-    #configfile.set(str(config.get('VISION', NOTE_CONFIG_FILE_TOPIC_NAME)))
+    #configfile.set(str(config.get('VISION', FUEL_CONFIG_FILE_TOPIC_NAME)))
     min_h.set(mi_h)
     min_s.set(mi_s)
     min_v.set(mi_v)
     max_h.set(mx_h)
     max_s.set(mx_s)
     max_v.set(mx_v)
-    #min_area.set(float(config.get('VISION', NOTE_MIN_AREA_TOPIC_NAME)))
+    #min_area.set(float(config.get('VISION', FUEL_MIN_AREA_TOPIC_NAME)))
 
 def nt_update_gen(type,
                   config,
@@ -425,10 +425,10 @@ def nt_update_gen(type,
               tag_contrast,
               tag_ae,
               tag_exposure,
-              note_brightness,
-              note_contrast,
-              note_ae,
-              note_exposure,
+              fuel_brightness,
+              fuel_contrast,
+              fuel_ae,
+              fuel_exposure,
               y_offset):
     # sync the stuff in the file with matching values in the file
     b = float(config.get('GENERAL', 'Brightness'))
@@ -443,10 +443,10 @@ def nt_update_gen(type,
         tag_ae.set(ae)
         tag_exposure.set(exp)
     else:
-        note_brightness.set(b)
-        note_contrast.set(c)
-        note_ae.set(ae)
-        note_exposure.set(exp)
+        fuel_brightness.set(b)
+        fuel_contrast.set(c)
+        fuel_ae.set(ae)
+        fuel_exposure.set(exp)
         y_offset.set(y)
 
 '''
@@ -454,16 +454,16 @@ all data to send is packaged as an array of bytes, using a Python bytearray, in 
 sequence number: unsigned long (4 bytes)
 rio time: float (4 bytes)
 image time:float (4 bytes)
-type (tag = 1, note = 3): unsigned char (1 byte)
-length: how many tags/notes follow
+type (tag = 1, fuel = 3): unsigned char (1 byte)
+length: how many tags/fuel follow
 what follows these first 3 items depends on the type:
 tag:
 number of tags detected: unsigned char (1 byte)
 for each tag: tag id unsigned char (1 byte), pose x: float (4 bytes), pose y: float (4 bytes), pose z: float (4 bytes), pose x angle: float (4 bytes), pose y angle: float (4 bytes), pose z angle: float (4 bytes)
 
-note:
-number of notes detected: unsigned char (1 byte)
-for each note: pose x: float (4 bytes), pose y: float (4 bytes), pose z: float (4 bytes), pose x angle: float (4 bytes), pose y angle: float (4 bytes), pose z angle: float (4 bytes)s)
+fuel:
+number of fuel detected: unsigned char (1 byte)
+for each fuel: pose x: float (4 bytes), pose y: float (4 bytes), pose z: float (4 bytes), pose x angle: float (4 bytes), pose y angle: float (4 bytes), pose z angle: float (4 bytes)s)
 '''
 def pose_data_bytes(sequence_num, rio_time, image_time, tags, tag_poses):
     byte_array = bytearray()
@@ -492,6 +492,33 @@ def remove_image_files(path):
         if os.path.isfile(file_path):
             os.remove(file_path)  
 
+class Fuel_Config_Save_Class:
+    def __init__(self, save, fileName, minH, maxH, minS, maxS, minV, maxV, minA):
+        self.save = save
+        self.fileName = fileName
+        self.minH = minH
+        self.maxH = maxH
+        self.minS = minS
+        self.maxS = maxS
+        self.minV = minV
+        self.maxV = maxV
+        self.minA = minA
+
+
+def fuel_config_save(config):
+    if config.save.get() == True:
+        print("saving...")
+        file_write_fuel(config.fileName.get(), \
+            config.minH.get(), \
+            config.minS.get(), \
+            config.minV.get(), \
+            config.maxH.get(), \
+            config.maxS.get(), \
+            config.maxV.get(), \
+            config.minA.get())
+        config.save.set(False)
+
+
 def main():
 
     print("Hello")
@@ -500,7 +527,7 @@ def main():
     camera_orientation = camera_upside_down()
 
     # start NetworkTables
-    ntconnect = NTConnectType(NTConnectType.CLIENT)    #use CLIENT when running with rio
+    ntconnect = NTConnectType(NTConnectType.SERVER)    #use CLIENT when running with rio
     ntinst = NetworkTableInstance.getDefault()
     if ntconnect == NTConnectType.SERVER:
         ntinst.startServer()
@@ -522,10 +549,10 @@ def main():
 
     # Table for vision output information
     tag_uptime_ntt = NTGetDouble(ntinst.getDoubleTopic("/Vision/Tag Uptime"), 0, 0, -1)
-    note_uptime_ntt = NTGetDouble(ntinst.getDoubleTopic("/Vision/Note Uptime"), 0, 0, -1)
+    fuel_uptime_ntt = NTGetDouble(ntinst.getDoubleTopic("/Vision/Fuel Uptime"), 0, 0, -1)
 
     debug_tag_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Tag Debug Mode"), DEBUG_MODE_DEFAULT, DEBUG_MODE_DEFAULT, DEBUG_MODE_DEFAULT)
-    debug_note_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Note Debug Mode"), DEBUG_MODE_DEFAULT, DEBUG_MODE_DEFAULT, DEBUG_MODE_DEFAULT)
+    debug_fuel_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Fuel Debug Mode"), DEBUG_MODE_DEFAULT, DEBUG_MODE_DEFAULT, DEBUG_MODE_DEFAULT)
     threads_ntt = NTGetDouble(ntinst.getDoubleTopic(THREADS_TOPIC_NAME),THREADS_DEFAULT, THREADS_DEFAULT, THREADS_DEFAULT)
     quadDecimate_ntt = NTGetDouble(ntinst.getDoubleTopic(DECIMATE_TOPIC_NAME),DECIMATE_DEFAULT, DECIMATE_DEFAULT, DECIMATE_DEFAULT)
     blur_ntt = NTGetDouble(ntinst.getDoubleTopic(BLUR_TOPIC_NAME),BLUR_DEFAULT, BLUR_DEFAULT, BLUR_DEFAULT) 
@@ -534,34 +561,34 @@ def main():
     ATDebug_ntt = NTGetBoolean(ntinst.getBooleanTopic(APRILTAG_DEBUG_MODE_TOPIC_NAME), APRILTAG_DEBUG_MODE_DEFAULT, APRILTAG_DEBUG_MODE_DEFAULT, APRILTAG_DEBUG_MODE_DEFAULT)
     decision_margin_min_ntt = NTGetDouble(ntinst.getDoubleTopic(DECISION_MARGIN_MIN_TOPIC_NAME), DECISION_MARGIN_DEFAULT, DECISION_MARGIN_DEFAULT, DECISION_MARGIN_DEFAULT)
     tagconfigfile_ntt = NTGetString(ntinst.getStringTopic(TAG_CONFIG_FILE_TOPIC_NAME), TAG_CONFIG_FILE_DEFAULT,TAG_CONFIG_FILE_DEFAULT, TAG_CONFIG_FILE_DEFAULT)
-    noteconfigfile_ntt = NTGetString(ntinst.getStringTopic(NOTE_CONFIG_FILE_TOPIC_NAME), NOTE_CONFIG_FILE_DEFAULT,NOTE_CONFIG_FILE_DEFAULT, NOTE_CONFIG_FILE_DEFAULT)
+    fuelconfigfile_ntt = NTGetString(ntinst.getStringTopic(FUEL_CONFIG_FILE_TOPIC_NAME), FUEL_CONFIG_FILE_DEFAULT,FUEL_CONFIG_FILE_DEFAULT, FUEL_CONFIG_FILE_DEFAULT)
     configfilefail_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Config File Fail"), False, False, False)
     tag_active_ntt = NTGetBoolean(ntinst.getBooleanTopic(TAG_ACTIVE_TOPIC_NAME), True, True, True)
-    note_active_ntt = NTGetBoolean(ntinst.getBooleanTopic(NOTE_ACTIVE_TOPIC_NAME), True, True, True)
+    fuel_active_ntt = NTGetBoolean(ntinst.getBooleanTopic(FUEL_ACTIVE_TOPIC_NAME), True, True, True)
     pose_data_bytes_ntt = NTGetRaw(ntinst, POSE_DATA_RAW_TOPIC_NAME, None, None, None)
-    note_pose_data_bytes_ntt = NTGetRaw(ntinst, NOTE_POSE_DATA_RAW_TOPIC_NAME, None, None, None)
+    fuel_pose_data_bytes_ntt = NTGetRaw(ntinst, FUEL_POSE_DATA_RAW_TOPIC_NAME, None, None, None)
     pose_data_string_header_ntt = NTGetString(ntinst.getStringTopic(POSE_DATA_STRING_TOPIC_NAME_HEADER),"", "", "")
-    note_pose_data_string_header_ntt = NTGetString(ntinst.getStringTopic(NOTE_POSE_DATA_STRING_TOPIC_NAME_HEADER),"", "", "") 
+    fuel_pose_data_string_header_ntt = NTGetString(ntinst.getStringTopic(FUEL_POSE_DATA_STRING_TOPIC_NAME_HEADER),"", "", "") 
     pose_data_string_data_translation_ntt = NTGetString(ntinst.getStringTopic(POSE_DATA_STRING_TOPIC_NAME_DATA_TRANSLATION),"", "", "")
     pose_data_string_data_rotation_ntt = NTGetString(ntinst.getStringTopic(POSE_DATA_STRING_TOPIC_NAME_DATA_ROTATION),"", "", "")
     temp_tag_ntt = NTGetDouble(ntinst.getDoubleTopic(TAG_PI_TEMP_TOPIC_NAME), 0, 0, 0)
-    temp_note_ntt = NTGetDouble(ntinst.getDoubleTopic(NOTE_PI_TEMP_TOPIC_NAME), 0, 0, 0)
+    temp_fuel_ntt = NTGetDouble(ntinst.getDoubleTopic(FUEL_PI_TEMP_TOPIC_NAME), 0, 0, 0)
     z_in_ntt = NTGetDouble(ntinst.getDoubleTopic(Z_IN_TOPIC_NAME), 0.0, 0.0, 0.0)
-    note_min_h_ntt = NTGetDouble(ntinst.getDoubleTopic(NOTE_MIN_HUE_TOPIC_NAME), NOTE_MIN_HUE, NOTE_MIN_HUE, NOTE_MIN_HUE)
-    note_min_s_ntt = NTGetDouble(ntinst.getDoubleTopic(NOTE_MIN_SAT_TOPIC_NAME), NOTE_MIN_SAT, NOTE_MIN_SAT, NOTE_MIN_SAT)
-    note_min_v_ntt = NTGetDouble(ntinst.getDoubleTopic(NOTE_MIN_VAL_TOPIC_NAME), NOTE_MIN_VAL, NOTE_MIN_VAL, NOTE_MIN_VAL)
-    note_max_h_ntt = NTGetDouble(ntinst.getDoubleTopic(NOTE_MAX_HUE_TOPIC_NAME), NOTE_MAX_HUE, NOTE_MAX_HUE, NOTE_MAX_HUE)
-    note_max_s_ntt = NTGetDouble(ntinst.getDoubleTopic(NOTE_MAX_SAT_TOPIC_NAME), NOTE_MAX_SAT, NOTE_MAX_SAT, NOTE_MAX_SAT)
-    note_max_v_ntt = NTGetDouble(ntinst.getDoubleTopic(NOTE_MAX_VAL_TOPIC_NAME), NOTE_MAX_VAL, NOTE_MAX_VAL, NOTE_MAX_VAL)
+    fuel_min_h_ntt = NTGetDouble(ntinst.getDoubleTopic(FUEL_MIN_HUE_TOPIC_NAME), FUEL_MIN_HUE, FUEL_MIN_HUE, FUEL_MIN_HUE)
+    fuel_min_s_ntt = NTGetDouble(ntinst.getDoubleTopic(FUEL_MIN_SAT_TOPIC_NAME), FUEL_MIN_SAT, FUEL_MIN_SAT, FUEL_MIN_SAT)
+    fuel_min_v_ntt = NTGetDouble(ntinst.getDoubleTopic(FUEL_MIN_VAL_TOPIC_NAME), FUEL_MIN_VAL, FUEL_MIN_VAL, FUEL_MIN_VAL)
+    fuel_max_h_ntt = NTGetDouble(ntinst.getDoubleTopic(FUEL_MAX_HUE_TOPIC_NAME), FUEL_MAX_HUE, FUEL_MAX_HUE, FUEL_MAX_HUE)
+    fuel_max_s_ntt = NTGetDouble(ntinst.getDoubleTopic(FUEL_MAX_SAT_TOPIC_NAME), FUEL_MAX_SAT, FUEL_MAX_SAT, FUEL_MAX_SAT)
+    fuel_max_v_ntt = NTGetDouble(ntinst.getDoubleTopic(FUEL_MAX_VAL_TOPIC_NAME), FUEL_MAX_VAL, FUEL_MAX_VAL, FUEL_MAX_VAL)
     tag_enable = NTGetBoolean(ntinst.getBooleanTopic(TAG_ENABLE_TOPIC_NAME), False, False, False)
-    note_enable_ntt = NTGetBoolean(ntinst.getBooleanTopic(NOTE_ENABLE_TOPIC_NAME), False, False, False)
-    note_min_area_ntt = NTGetDouble(ntinst.getDoubleTopic(NOTE_MIN_AREA_TOPIC_NAME), NOTE_MIN_AREA, NOTE_MIN_AREA, NOTE_MIN_AREA)
-    note_angle_ntt = NTGetDouble(ntinst.getDoubleTopic(NOTE_ANGLE_TOPIC_NAME), 0.0, 0.0, 0.0)
+    fuel_enable_ntt = NTGetBoolean(ntinst.getBooleanTopic(FUEL_ENABLE_TOPIC_NAME), False, False, False)
+    fuel_min_area_ntt = NTGetDouble(ntinst.getDoubleTopic(FUEL_MIN_AREA_TOPIC_NAME), FUEL_MIN_AREA, FUEL_MIN_AREA, FUEL_MIN_AREA)
+    fuel_angle_ntt = NTGetDouble(ntinst.getDoubleTopic(FUEL_ANGLE_TOPIC_NAME), 0.0, 0.0, 0.0)
     tag_record_ntt = NTGetBoolean(ntinst.getBooleanTopic(TAG_RECORD_ENABLE_TOPIC_NAME), False, False, False)
     tag_record_remove_ntt = NTGetBoolean(ntinst.getBooleanTopic(TAG_RECORD_REMOVE_TOPIC_NAME), False, False, False)
-    note_record_data_ntt = NTGetBoolean(ntinst.getBooleanTopic(NOTE_RECORD_DATA_TOPIC_NAME), False, False, False)
+    fuel_record_data_ntt = NTGetBoolean(ntinst.getBooleanTopic(FUEL_RECORD_DATA_TOPIC_NAME), False, False, False)
     decision_margin_max_ntt = NTGetDouble(ntinst.getDoubleTopic(DECISION_MARGIN_MAX_TOPIC_NAME), DECISION_MARGIN_DEFAULT, DECISION_MARGIN_DEFAULT, DECISION_MARGIN_DEFAULT)
-    note_distance_ntt = NTGetDouble(ntinst.getDoubleTopic("/Vision/Note Distance"), 0.0, 0.0, 0.0)
+    fuel_distance_ntt = NTGetDouble(ntinst.getDoubleTopic("/Vision/Fuel Distance"), 0.0, 0.0, 0.0)
     tag_crop_x_ntt = NTGetDouble(ntinst.getDoubleTopic(TAG_CROP_TOP_TOPIC_NAME), TAG_CROP_TOP_DEFAULT, TAG_CROP_TOP_DEFAULT, TAG_CROP_TOP_DEFAULT)
     tag_crop_y_ntt = NTGetDouble(ntinst.getDoubleTopic(TAG_CROP_BOTTOM_TOPIC_NAME), TAG_CROP_BOTTOM_DEFAULT, TAG_CROP_BOTTOM_DEFAULT, TAG_CROP_BOTTOM_DEFAULT)
     tag_corrected_errors_ntt = NTGetDouble(ntinst.getDoubleTopic(TAG_ERRORS_TOPIC_NAME), TAG_ERRORS_DEFAULT, TAG_ERRORS_DEFAULT, TAG_ERRORS_DEFAULT)
@@ -579,17 +606,17 @@ def main():
     tag_ae_ntt = NTGetBoolean(ntinst.getBooleanTopic(TAG_AE_TOPIC_NAME), AE_DEFAULT, AE_DEFAULT, AE_DEFAULT)
     tag_exposure_ntt = NTGetDouble(ntinst.getDoubleTopic(TAG_EXPOSURE_TOPIC_NAME), EXPOSURE_DEFAULT, EXPOSURE_DEFAULT, EXPOSURE_DEFAULT)
 
-    note_brightness_ntt = NTGetDouble(ntinst.getDoubleTopic(NOTE_BRIGHTNESS_TOPIC_NAME), BRIGHTNESS_DEFAULT, BRIGHTNESS_DEFAULT, BRIGHTNESS_DEFAULT)
-    note_contrast_ntt = NTGetDouble(ntinst.getDoubleTopic(NOTE_CONTRAST_TOPIC_NAME), CONTRAST_DEFAULT, CONTRAST_DEFAULT, CONTRAST_DEFAULT)
-    note_ae_ntt = NTGetBoolean(ntinst.getBooleanTopic(NOTE_AE_TOPIC_NAME), AE_DEFAULT, AE_DEFAULT, AE_DEFAULT)
-    note_exposure_ntt = NTGetDouble(ntinst.getDoubleTopic(NOTE_EXPOSURE_TOPIC_NAME), EXPOSURE_DEFAULT, EXPOSURE_DEFAULT, EXPOSURE_DEFAULT)
+    fuel_brightness_ntt = NTGetDouble(ntinst.getDoubleTopic(FUEL_BRIGHTNESS_TOPIC_NAME), BRIGHTNESS_DEFAULT, BRIGHTNESS_DEFAULT, BRIGHTNESS_DEFAULT)
+    fuel_contrast_ntt = NTGetDouble(ntinst.getDoubleTopic(FUEL_CONTRAST_TOPIC_NAME), CONTRAST_DEFAULT, CONTRAST_DEFAULT, CONTRAST_DEFAULT)
+    fuel_ae_ntt = NTGetBoolean(ntinst.getBooleanTopic(FUEL_AE_TOPIC_NAME), AE_DEFAULT, AE_DEFAULT, AE_DEFAULT)
+    fuel_exposure_ntt = NTGetDouble(ntinst.getDoubleTopic(FUEL_EXPOSURE_TOPIC_NAME), EXPOSURE_DEFAULT, EXPOSURE_DEFAULT, EXPOSURE_DEFAULT)
 
     tag_config_savefile_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Tag Config Save"), False, False, False)
-    note_config_savefile_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Note Config Save"), False, False, False)
+    fuel_config_savefile_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Fuel Config Save"), False, False, False)
     tag_camera_safefile_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Tag Camera Save"), False, False, False)
-    note_camera_savefile_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Note Camera Save"), False, False, False)
-    note_camera_refresh_nt_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Note Camera Refresh Nt"), False, False, False)
-    gen_note_y_offset_ntt =  NTGetDouble(ntinst.getDoubleTopic(GEN_NOTE_Y_OFFSET_TOPIC_NAME), 0, 0, 0)
+    fuel_camera_savefile_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Fuel Camera Save"), False, False, False)
+    fuel_camera_refresh_nt_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Fuel Camera Refresh Nt"), False, False, False)
+    gen_fuel_y_offset_ntt =  NTGetDouble(ntinst.getDoubleTopic(GEN_FUEL_Y_OFFSET_TOPIC_NAME), 0, 0, 0)
 
     detector = robotpy_apriltag.AprilTagDetector()
     #detector.addFamily("tag16h5")
@@ -597,8 +624,18 @@ def main():
 
     # use for file
     config_tag = configparser.ConfigParser()
-    config_note = configparser.ConfigParser()
+    config_fuel = configparser.ConfigParser()
     config_gen = configparser.ConfigParser()
+
+    fuelConfigSave = Fuel_Config_Save_Class(fuel_config_savefile_ntt, \
+        fuelconfigfile_ntt, \
+        fuel_min_h_ntt, \
+        fuel_max_h_ntt, \
+        fuel_min_s_ntt, \
+        fuel_max_s_ntt, \
+        fuel_min_v_ntt, \
+        fuel_max_v_ntt, \
+        fuel_min_area_ntt)
 
     '''
     print('*****')
@@ -614,14 +651,14 @@ def main():
         decodeSharpening_ntt, ATDebug_ntt, decision_margin_min_ntt, decision_margin_max_ntt, \
         tag_crop_x_ntt, tag_crop_y_ntt, tag_corrected_errors_ntt, tagconfigfile_ntt)
         
-    file_read_note(config_note, configfilefail_ntt)
-    nt_update_notes(config_note, noteconfigfile_ntt, \
-        note_min_h_ntt, note_min_s_ntt, note_min_v_ntt, note_max_h_ntt, note_max_s_ntt, note_max_v_ntt, \
-        note_min_area_ntt)
+    file_read_fuel(config_fuel, configfilefail_ntt)
+    nt_update_fuel(config_fuel, fuelconfigfile_ntt, \
+        fuel_min_h_ntt, fuel_min_s_ntt, fuel_min_v_ntt, fuel_max_h_ntt, fuel_max_s_ntt, fuel_max_v_ntt, \
+        fuel_min_area_ntt)
 
     file_read_gen(config_gen, configfilefail_ntt)
     nt_update_gen(vision_type, config_gen, tag_brightness_ntt, tag_contrast_ntt, tag_ae_ntt, tag_exposure_ntt, \
-        note_brightness_ntt, note_contrast_ntt, note_ae_ntt, note_exposure_ntt, gen_note_y_offset_ntt)
+        fuel_brightness_ntt, fuel_contrast_ntt, fuel_ae_ntt, fuel_exposure_ntt, gen_fuel_y_offset_ntt)
     
     detectorConfig = robotpy_apriltag.AprilTagDetector.Config()
 
@@ -634,14 +671,14 @@ def main():
     detector.setConfig(detectorConfig)
     
 
-    note_min_h = int(config_note.get('VISION', NOTE_MIN_HUE_TOPIC_NAME))
-    note_min_s = int(config_note.get('VISION', NOTE_MIN_SAT_TOPIC_NAME))
-    note_min_v = int(config_note.get('VISION', NOTE_MIN_VAL_TOPIC_NAME))
-    note_max_h = int(config_note.get('VISION', NOTE_MAX_HUE_TOPIC_NAME))
-    note_max_s = int(config_note.get('VISION', NOTE_MAX_SAT_TOPIC_NAME))
-    note_max_v = int(config_note.get('VISION', NOTE_MAX_VAL_TOPIC_NAME))
-    note_min_area = int(config_note.get('VISION', NOTE_MIN_AREA_TOPIC_NAME))
-    note_max_area = 1000
+    fuel_min_h = int(config_fuel.get('VISION', FUEL_MIN_HUE_TOPIC_NAME))
+    fuel_min_s = int(config_fuel.get('VISION', FUEL_MIN_SAT_TOPIC_NAME))
+    fuel_min_v = int(config_fuel.get('VISION', FUEL_MIN_VAL_TOPIC_NAME))
+    fuel_max_h = int(config_fuel.get('VISION', FUEL_MAX_HUE_TOPIC_NAME))
+    fuel_max_s = int(config_fuel.get('VISION', FUEL_MAX_SAT_TOPIC_NAME))
+    fuel_max_v = int(config_fuel.get('VISION', FUEL_MAX_VAL_TOPIC_NAME))
+    fuel_min_area = int(config_fuel.get('VISION', FUEL_MIN_AREA_TOPIC_NAME))
+    fuel_max_area = 1000
 
     #set up pose estimation
     ''' old way for camera calibration
@@ -721,7 +758,7 @@ def main():
     if vision_type == 'tag':
         outputStreamTag = CameraServer.putVideo("tag image", cam_config['width'], cam_config['height'])
     else:
-        outputStreamNote = CameraServer.putVideo("note image", cam_config['width'], cam_config['height'])
+        outputStreamFuel = CameraServer.putVideo("fuel image", cam_config['width'], cam_config['height'])
         outputMask = CameraServer.putVideo("mask image", cam_config['width'], cam_config['height'])
 
     # Allocating new images is very expensive, always try to preallocate
@@ -747,9 +784,9 @@ def main():
     tag_last_brightness = None
     tag_last_contrast = None
     tag_last_ae_mode = None
-    note_last_brightness = None
-    note_last_contrast = None
-    note_last_ae_mode = None
+    fuel_last_brightness = None
+    fuel_last_contrast = None
+    fuel_last_ae_mode = None
 
     brightness = BRIGHTNESS_DEFAULT
     contrast = CONTRAST_DEFAULT
@@ -757,7 +794,7 @@ def main():
     exp_time = EXPOSURE_DEFAULT
     cam_settings_changed = False
 
-    NOTE_Y_OFFSET = int(config_gen.get('GENERAL', 'Y Offset'))
+    FUEL_Y_OFFSET = int(config_gen.get('GENERAL', 'Y Offset'))
 
     while True:
 
@@ -804,69 +841,74 @@ def main():
                         cam_settings_changed = True
 
                     if cam_settings_changed == True and tag_camera_safefile_ntt.get() == True:
-                        file_write_gen(brightness, contrast, ae_mode, exp_time, NOTE_Y_OFFSET)
+                        file_write_gen(brightness, contrast, ae_mode, exp_time, FUEL_Y_OFFSET)
                         tag_camera_safefile_ntt.set(False)
                         cam_settings_changed = False
 
             else:
 
-                db_n = debug_note_ntt.get()
+                db_n = debug_fuel_ntt.get()
 
                 if db_n == True:
                     
-                    if note_camera_refresh_nt_ntt.get() == True:
-                        file_read_note(config_note, configfilefail_ntt)
-                        nt_update_notes(config_note, noteconfigfile_ntt, \
-                            note_min_h_ntt, note_min_s_ntt, note_min_v_ntt, note_max_h_ntt, note_max_s_ntt, note_max_v_ntt, \
-                            note_min_area_ntt)
+                    if fuel_camera_refresh_nt_ntt.get() == True:
+                        file_read_fuel(config_fuel, configfilefail_ntt)
+                        nt_update_fuel(config_fuel, fuelconfigfile_ntt, \
+                            fuel_min_h_ntt, fuel_min_s_ntt, fuel_min_v_ntt, fuel_max_h_ntt, fuel_max_s_ntt, fuel_max_v_ntt, \
+                            fuel_min_area_ntt)
                         file_read_gen(config_gen, configfilefail_ntt)
                         nt_update_gen(vision_type, config_gen, tag_brightness_ntt, tag_contrast_ntt, tag_ae_ntt, tag_exposure_ntt, \
-                            note_brightness_ntt, note_contrast_ntt, note_ae_ntt, note_exposure_ntt, gen_note_y_offset_ntt)
-                        note_camera_refresh_nt_ntt.set(False)
+                            fuel_brightness_ntt, fuel_contrast_ntt, fuel_ae_ntt, fuel_exposure_ntt, gen_fuel_y_offset_ntt)
+                        fuel_camera_refresh_nt_ntt.set(False)
 
-                    if note_last_brightness != note_brightness_ntt.get():
-                        brightness = float(note_brightness_ntt.get())
+                    if fuel_last_brightness != fuel_brightness_ntt.get():
+                        brightness = float(fuel_brightness_ntt.get())
                         picam2.set_controls({'Brightness': float(brightness)})
                         config_gen.set('GENERAL', 'Brightness', str(brightness))
-                        note_last_brightness = brightness
+                        fuel_last_brightness = brightness
                         cam_settings_changed = True
 
-                    if note_last_contrast != note_contrast_ntt.get():
-                        contrast = float(note_contrast_ntt.get())
+                    if fuel_last_contrast != fuel_contrast_ntt.get():
+                        contrast = float(fuel_contrast_ntt.get())
                         picam2.set_controls({'Contrast': float(contrast)})
                         config_gen.set('GENERAL', 'Contrast', str(contrast))
-                        note_last_contrast = contrast
+                        fuel_last_contrast = contrast
                         cam_settings_changed = True
 
-                    if note_last_ae_mode != note_ae_ntt.get():
+                    if fuel_last_ae_mode != fuel_ae_ntt.get():
                         ae_mode = bool(tag_ae_ntt.get())
                         picam2.set_controls({'AeEnable': bool(ae_mode)})
                         config_gen.set('GENERAL', 'AeEnable', str(ae_mode))
-                        note_last_ae_mode = ae_mode
+                        fuel_last_ae_mode = ae_mode
                         cam_settings_changed = True
 
-                    if note_last_ae_mode == False:
-                        exp_time = int(round(note_exposure_ntt.get(),0))
+                    if fuel_last_ae_mode == False:
+                        exp_time = int(round(fuel_exposure_ntt.get(),0))
                         picam2.set_controls({"ExposureTime": \
                             exp_time, "AnalogueGain": 1.0})
                         config_gen.set('GENERAL', 'Manual Exposure Time', str(exp_time))
                         cam_settings_changed = True
 
-                    if NOTE_Y_OFFSET != gen_note_y_offset_ntt.get():
-                        NOTE_Y_OFFSET = int(round(gen_note_y_offset_ntt.get(),0))
-                        config_gen.set('GENERAL', 'Y Offset', str(NOTE_Y_OFFSET))
+                    if FUEL_Y_OFFSET != gen_fuel_y_offset_ntt.get():
+                        FUEL_Y_OFFSET = int(round(gen_fuel_y_offset_ntt.get(),0))
+                        config_gen.set('GENERAL', 'Y Offset', str(FUEL_Y_OFFSET))
                         cam_settings_changed = True
                     
-                    if cam_settings_changed == True and note_camera_savefile_ntt.get() == True:
-                        file_write_gen(brightness, contrast, ae_mode, exp_time, NOTE_Y_OFFSET)
-                        note_camera_savefile_ntt.set(False)
+                    if cam_settings_changed == True and fuel_camera_savefile_ntt.get() == True:
+                        print("saving camera settings")
+                        file_write_gen(brightness, contrast, ae_mode, exp_time, FUEL_Y_OFFSET)
+                        fuel_camera_savefile_ntt.set(False)
                         cam_settings_changed = False
+                    elif cam_settings_changed == False and fuel_camera_savefile_ntt.get() == True:
+                        print("values unchanged")
+                        fuel_camera_savefile_ntt.set(False)
+
 
 
             if vision_type == 'tag':
                 tag_uptime_ntt.set(seconds)
             else:
-                note_uptime_ntt.set(seconds)
+                fuel_uptime_ntt.set(seconds)
             time_check = True
 
             if vision_type == 'tag':
@@ -876,8 +918,8 @@ def main():
                     print(f'{seconds}')
             else:                
                 if db_n == True:
-                    print(f'sec={seconds} notes: ave fps={round(fps_av,0)} fps min={round(fps_av_min,0)} fps max={round(fps_av_max,0)}')
-                    #print(f'NOTE_Y_OFFSET={NOTE_Y_OFFSET}')
+                    print(f'sec={seconds} fuel: ave fps={round(fps_av,0)} fps min={round(fps_av_min,0)} fps max={round(fps_av_max,0)}')
+                    #print(f'FUEL_Y_OFFSET={FUEL_Y_OFFSET}')
                 else:
                     print(f'{seconds}')
             
@@ -887,7 +929,7 @@ def main():
                 if vision_type == 'tag':
                     temp_tag_ntt.set(current_temp)
                 else:
-                    temp_note_ntt.set(current_temp)
+                    temp_fuel_ntt.set(current_temp)
                 '''
                 temp_ntt.set(int(f.readline()) / 1000) #converting milidegrees C to degrees C
                 temp_sec = 0
@@ -1066,20 +1108,21 @@ def main():
                         tag_crop_x_ntt.get(), tag_crop_y_ntt.get(), tag_corrected_errors_ntt.get()) 
                     tag_config_savefile_ntt.set(False)
 
-        #NOTE!!!
-        elif vision_type == 'note':
-            #if note_enable_ntt.get() == True:
+        #FUEL!!!
+        elif vision_type == 'fuel':
+        
+            #if fuel_enable_ntt.get() == True:
 
-            db_n = debug_note_ntt.get()
+            db_n = debug_fuel_ntt.get()
 
             if db_n == True:
-                note_min_h = int(note_min_h_ntt.get())
-                note_min_s = int(note_min_s_ntt.get())
-                note_min_v = int(note_min_v_ntt.get())
-                note_max_h = int(note_max_h_ntt.get())
-                note_max_s = int(note_max_s_ntt.get())
-                note_max_v = int(note_max_v_ntt.get())
-                note_min_area = int(note_min_area_ntt.get())
+                fuel_min_h = int(fuel_min_h_ntt.get())
+                fuel_min_s = int(fuel_min_s_ntt.get())
+                fuel_min_v = int(fuel_min_v_ntt.get())
+                fuel_max_h = int(fuel_max_h_ntt.get())
+                fuel_max_s = int(fuel_max_s_ntt.get())
+                fuel_max_v = int(fuel_max_v_ntt.get())
+                fuel_min_area = int(fuel_min_area_ntt.get())
 
             '''
             # filter colors in HSV space
@@ -1093,23 +1136,22 @@ def main():
             img_HSV = cv2.cvtColor(original_image, cv2.COLOR_BGR2HSV)
 
             # only keep pixels with colors that match the range in color_config
-            orange_low = np.array([note_min_h, note_min_s, note_min_v])
-            orange_high = np.array([note_max_h, note_max_s, note_max_v])
+            orange_low = np.array([fuel_min_h, fuel_min_s, fuel_min_v])
+            orange_high = np.array([fuel_max_h, fuel_max_s, fuel_max_v])
             img_mask = cv2.inRange(img_HSV, orange_low, orange_high)
-            # notes should appear in the region below the bottom of this region
+            # fuel should appear in the region below the bottom of this region
             #   img_mask[0:260,0:640] = 0
             
             orange, useless = cv2.findContours(img_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             #sorting the orange pixels from largest to smallest
             orangeSorted = sorted(orange, key=lambda x: cv2.contourArea(x), reverse=True)
             
-            notes = []
-            note_contours = []
+            fuel = []
+            fuel_contours = []
            
             max_contour = None
             center_y_max = -24
             area = 1
-
             for y in orangeSorted:
 
                 area = cv2.contourArea(y)
@@ -1117,29 +1159,29 @@ def main():
                 #uncomment the following block to get raw data output for debugging and calibrating distance / angle
                 '''
                 r_x,r_y,r_w,r_h = cv2.boundingRect(y)
-                center_x = r_x + int(round(r_w / 2)) + NOTE_X_OFFSET
-                center_y = r_y + int(round(r_h / 2)) + NOTE_Y_OFFSET
+                center_x = r_x + int(round(r_w / 2)) + FUEL_X_OFFSET
+                center_y = r_y + int(round(r_h / 2)) + FUEL_Y_OFFSET
                 extent = float(area) / (r_w * r_h)
-                print(f'ar={area:4.1f} ex={extent:1.2f} note_x={center_x} note_y={center_y}')
+                print(f'ar={area:4.1f} ex={extent:1.2f} fuel_x={center_x} fuel_y={center_y}')
                 '''
 
                 if area > 300:
                     r_x,r_y,r_w,r_h = cv2.boundingRect(y)
-                    center_y = r_y + int(round(r_h / 2)) + NOTE_Y_OFFSET
+                    center_y = r_y + int(round(r_h / 2)) + FUEL_Y_OFFSET
 
                     if center_y > center_y_max:
                         center_y_max = center_y
                         max_contour = y     
             
             # at this point, max_contour points to closest shape by vertical y or None if the area of all were too small
-            # now need to determine if this shape is a note
+            # now need to determine if this shape is a fuel
             if max_contour is not None:
 
                 area = cv2.contourArea(max_contour)
 
                 r_x,r_y,r_w,r_h = cv2.boundingRect(max_contour)
-                center_x = r_x + int(round(r_w / 2)) + NOTE_X_OFFSET
-                center_y = r_y + int(round(r_h / 2)) + NOTE_Y_OFFSET
+                center_x = r_x + int(round(r_w / 2)) + FUEL_X_OFFSET
+                center_y = r_y + int(round(r_h / 2)) + FUEL_Y_OFFSET
 
                 if (center_y > 17  and center_y < 240*2):
 
@@ -1154,11 +1196,11 @@ def main():
                     #extent goes way down when we get real close
                     if (extent > extent_min and extent < 1.0):
 
-                        if center_y >= 390: # don't see a full note this close, so y value for this distance is a bit off so force it to 0
+                        if center_y >= 390: # don't see a full fuel this close, so y value for this distance is a bit off so force it to 0
                             distance = 0
                         else:
-                            distance = note_regress_distance(center_y) # get distance (inches) using y location
-                        px_per_deg = note_regress_px_per_deg(distance) # get pixel per degree
+                            distance = fuel_regress_distance(center_y) # get distance (inches) using y location
+                        px_per_deg = fuel_regress_px_per_deg(distance) # get pixel per degree
                         angle = (1 / px_per_deg) * (center_x - w/2)
                         if (distance >= 0 and distance < 360) and (angle >= -70 and angle < 70): # sanity check'''
                     
@@ -1177,39 +1219,31 @@ def main():
                                 image_counter = 0
 
                             pose_data = piece_pose_data_bytes(image_num, rio_time, image_time, 3, distance, angle)
-                            note_pose_data_bytes_ntt.set(pose_data)
+                            fuel_pose_data_bytes_ntt.set(pose_data)
                             NetworkTableInstance.getDefault().flush()
 
                             if db_n == True:
                                 txt = piece_pose_data_string(image_num, rio_time, image_time, distance, angle)
-                                note_pose_data_string_header_ntt.set(txt)
-                                note_distance_ntt.set(round(distance,2))
-                                note_angle_ntt.set(round(angle,2))                       
-                                cv2.circle(img, (center_x, center_y), 12, (200,0,0), -1)
+                                fuel_pose_data_string_header_ntt.set(txt)
+                                fuel_distance_ntt.set(round(distance,2))
+                                fuel_angle_ntt.set(round(angle,2))                       
+                                cv2.circle(img, (center_x, center_y), 6, (255,0,255), -1)
                                 cv2.drawContours(img, [max_contour], 0, (200,0,0), 4)
-                                outputStreamNote.putFrame(img) # send to dashboard
+                                fuel_config_save(fuelConfigSave)
+                                outputStreamFuel.putFrame(img) # send to dashboard
                                 outputMask.putFrame(img_mask) # send to dashboard
-                                if note_record_data_ntt.get() == True:
-                                    note_data = f'{area:4.1f},{extent:2.1f},{center_x},{center_y},{distance:3.1f},{angle:2.1f}'
-                                    with open('note_data.txt', 'a') as f:
-                                        f.write(note_data)
+                                if fuel_record_data_ntt.get() == True:
+                                    fuel_data = f'{area:4.1f},{extent:2.1f},{center_x},{center_y},{distance:3.1f},{angle:2.1f}'
+                                    with open('fuel_data.txt', 'a') as f:
+                                        f.write(fuel_data)
                                         f.write('\n')
-                                    note_record_data_ntt.set(False)
+                                    fuel_record_data_ntt.set(False)
                                 continue
-                    
             if db_n == True:
-                outputStreamNote.putFrame(img) # send to dashboard
+                fuel_config_save(fuelConfigSave)
+                outputStreamFuel.putFrame(img) # send to dashboard
                 outputMask.putFrame(img_mask) # send to dashboard
-                if note_config_savefile_ntt.get() == True:
-                    file_write_notes(noteconfigfile_ntt.get(), \
-                        note_min_h_ntt.get(), \
-                        note_min_s_ntt.get(), \
-                        note_min_v_ntt.get(), \
-                        note_max_h_ntt.get(), \
-                        note_max_s_ntt.get(), \
-                        note_max_v_ntt.get(), \
-                        note_min_area_ntt.get())
-                    note_config_savefile_ntt.set(False)
+
                     
         else:
             continue
