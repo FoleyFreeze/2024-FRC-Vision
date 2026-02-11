@@ -616,6 +616,9 @@ def main():
     tag_camera_safefile_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Tag Camera Save"), False, False, False)
     fuel_camera_savefile_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Fuel Camera Save"), False, False, False)
     fuel_camera_refresh_nt_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Fuel Camera Refresh Nt"), False, False, False)
+
+    fuel_amount_detect_mode_ntt = NTGetBoolean(ntinst.getBooleanTopic("/Vision/Fuel Amount Detection Mode"), False, False, False)
+
     gen_fuel_y_offset_ntt =  NTGetDouble(ntinst.getDoubleTopic(GEN_FUEL_Y_OFFSET_TOPIC_NAME), 0, 0, 0)
 
     detector = robotpy_apriltag.AprilTagDetector()
@@ -793,6 +796,9 @@ def main():
     ae_mode = AE_DEFAULT
     exp_time = EXPOSURE_DEFAULT
     cam_settings_changed = False
+
+    amount_view_type = FUEL_AMOUNT_DETECT_MODE_DEFAULT
+
 
     FUEL_Y_OFFSET = int(config_gen.get('GENERAL', 'Y Offset'))
 
@@ -1142,38 +1148,90 @@ def main():
             # fuel should appear in the region below the bottom of this region
             #   img_mask[0:260,0:640] = 0
             
-            orange, useless = cv2.findContours(img_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            view_types = ["Contour Area View", "Aspect Ratio View", "Inverse BoundingRect Area View"]
+
+            mode_increment = fuel_amount_detect_mode_ntt.get()
+            if mode_increment == True:
+                amount_view_type += 1
+                if amount_view_type > len(view_types) - 1:
+                    amount_view_type = 0
+                print(view_types[amount_view_type])
+                fuel_amount_detect_mode_ntt.set(False)
+            cv2.putText(img, view_types[amount_view_type], (0, 22), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 220), 2) 
+
+            
+            color, useless = cv2.findContours(img_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             #sorting the orange pixels from largest to smallest
-            orangeSorted = sorted(orange, key=lambda x: cv2.contourArea(x), reverse=True)
+            colorSorted = sorted(color, key=lambda x: cv2.contourArea(x), reverse=True)
             
             fuel = []
             fuel_contours = []
-           
+        
             max_contour = None
             center_y_max = -24
+            center_y = -24
             area = 1
-            for y in orangeSorted:
+            maxRatioDiff = 0
+            max_inverse_area = 0
+            
+            for y in colorSorted:
+                r_x,r_y,r_w,r_h = cv2.boundingRect(y)
+                cv2.rectangle(img, (r_x, r_y), (r_x + r_w, r_y + r_h), (0, 0, 0), 2)
 
-                area = cv2.contourArea(y)
+                #Checks if contour is a circle
+                circle_aspect_w = r_w / r_h
+                circle_aspect_h = r_h / r_w
+                circle_ratio = max(circle_aspect_w, circle_aspect_h) - min(circle_aspect_w, circle_aspect_h)
+                if circle_ratio < 0.17:
+                    cv2.putText(img, "CIRCLE", (r_x , (round(r_y + (1.5 * r_h)))), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 0), 2) 
+                else:
+                    cv2.putText(img, str(round(circle_ratio, 4)), (r_x , (round(r_y + (1.5 * r_h)))), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 0, 0), 2) 
+
+                if amount_view_type == 0:
+                    #max area
+                    area = cv2.contourArea(y)
+
+                    if area > 300:
+                        r_x,r_y,r_w,r_h = cv2.boundingRect(y)
+                        center_y = r_y + int(round(r_h / 2)) + FUEL_Y_OFFSET
+                        if center_y > center_y_max:
+                            center_y_max = center_y
+                            max_contour = y
+
+
+                elif amount_view_type == 1:
+                    #aspect ratio
+                    aspectW = r_w / r_h
+                    aspectH = r_h / r_w
+                    ratioDiff = max(aspectW, aspectH) - min(aspectW, aspectH)
+                    if ratioDiff >= maxRatioDiff:
+                        max_contour = y
+                        maxRatioDiff = ratioDiff   
+
+
+                elif amount_view_type == 2:
+                    #inverse
+                    contour_area = cv2.contourArea(y)
+                    rect_area = r_h * r_w
+                    inverse_area = rect_area - contour_area
+                    if(inverse_area > max_inverse_area):
+                        max_contour = y
+                        max_inverse_area = inverse_area 
+                          
+
+
 
                 #uncomment the following block to get raw data output for debugging and calibrating distance / angle
                 
-                r_x,r_y,r_w,r_h = cv2.boundingRect(y)
-                cv2.rectangle(img, (r_x, r_y), (r_x + r_w, r_y + r_h), (0, 0, 0), 2)
+
+
                 #center_x = r_x + int(round(r_w / 2)) + FUEL_X_OFFSET
                 #center_y = r_y + int(round(r_h / 2)) + FUEL_Y_OFFSET
                 #extent = float(area) / (r_w * r_h)
                 #print(f'ar={area:4.1f} ex={extent:1.2f} fuel_x={center_x} fuel_y={center_y}')
-                
 
-                if area > 300:
-                    r_x,r_y,r_w,r_h = cv2.boundingRect(y)
-                    center_y = r_y + int(round(r_h / 2)) + FUEL_Y_OFFSET
 
-                    if center_y > center_y_max:
-                        center_y_max = center_y
-                        max_contour = y     
-            
+
             # at this point, max_contour points to closest shape by vertical y or None if the area of all were too small
             # now need to determine if this shape is a fuel
             if max_contour is not None:

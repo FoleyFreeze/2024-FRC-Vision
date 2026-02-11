@@ -238,7 +238,7 @@
           },
           {
             "title": "mask image",
-            "x": 1024.0,
+            "x": 896.0,
             "y": 384.0,
             "width": 256.0,
             "height": 256.0,
@@ -272,7 +272,7 @@
             "type": "Text Display",
             "properties": {
               "topic": "/Vision/Fuel Manual Exposure",
-              "period": 0.06,
+              "period": 0.033,
               "data_type": "double",
               "show_submit_button": false
             }
@@ -289,6 +289,19 @@
               "period": 0.06,
               "data_type": "double",
               "show_submit_button": false
+            }
+          },
+          {
+            "title": "Fuel Amount Detection Mode",
+            "x": 0.0,
+            "y": 512.0,
+            "width": 256.0,
+            "height": 128.0,
+            "type": "Toggle Button",
+            "properties": {
+              "topic": "/Vision/Fuel Amount Detection Mode",
+              "period": 0.06,
+              "data_type": "boolean"
             }
           }
         ]
